@@ -1,11 +1,9 @@
 package edu.rutgers.vietnguyen.webcrawler;
 
-import java.io.File;
+
 import java.util.Scanner;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 
 public class Main {
@@ -32,8 +30,6 @@ public class Main {
 			new Thread(urlReaderTask).start();
 			
 			//execute multiple threads to download PDF
-			ExecutorService pool = Executors.newCachedThreadPool();
-			
 			for(int i = 1; i <= SEARCH_THREADS; i ++ )
 				new Thread(new Downloader(queue, folderPath)).start();
 			

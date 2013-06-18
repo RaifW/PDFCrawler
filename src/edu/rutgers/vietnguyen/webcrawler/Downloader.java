@@ -3,10 +3,8 @@ package edu.rutgers.vietnguyen.webcrawler;
 import java.net.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.ListIterator;
 import java.io.*;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Callable;
 import java.util.regex.*;
 
 public class Downloader implements Runnable {
