@@ -1,22 +1,43 @@
 package edu.rutgers.vietnguyen.webcrawler;
 
+
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ListIterator;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.regex.*;
 import java.io.IOException;
+import java.util.concurrent.*;
 
-public class URLReader {
-	public static List<String> pdfList = new ArrayList<String>();
+
+public class URLReader implements Runnable {
+	private BlockingQueue<String> pdfList;
+	private String url;
+	public static String DUMMY = "";
 	
-	public void readURL(String sURL)
+	public URLReader(BlockingQueue<String> queue, String url)
+	{
+		this.pdfList = queue;
+		this.url = url;
+	}
+	
+	@Override
+	public void run() {
+		try
+		{
+			readURL();
+			pdfList.put(DUMMY); //put DUMMY at the end of the pdf list
+		}
+		catch(InterruptedException e)
+		{
+			
+		}
+	}
+	
+	public void readURL() throws InterruptedException
 	{
 		try
 		{
-			URL myURL = new URL(sURL);
+			URL myURL = new URL(url);
 			BufferedReader br = new BufferedReader(new InputStreamReader(myURL.openStream()));
 			String sLine;
 			StringBuilder builder = new StringBuilder();
@@ -42,18 +63,17 @@ public class URLReader {
 				String tmpLink = matcher.group().replace("href=\"","").replaceFirst("\"", "");
 				if(valid(tmpLink) && tmpLink.matches(".*pdf"))
 				{
-					tmpLink = makeAbsolute(sURL,tmpLink);
+					tmpLink = makeAbsolute(url,tmpLink);
 					if(tmpLink != "")
 					{
-						pdfList.add(tmpLink);
+						pdfList.put(tmpLink);
+						System.out.println("PDF found: " + tmpLink);
 					}
 				}
 			}
 			
-			System.out.println("Analysis done... Number of pdf link: " + pdfList.size());
-			
 		}
-		catch(Exception ex)
+		catch(IOException ex)
 		{
 			ex.printStackTrace();
 		}
@@ -101,4 +121,6 @@ public class URLReader {
 		return "";
 				
 	}
+
+
 }

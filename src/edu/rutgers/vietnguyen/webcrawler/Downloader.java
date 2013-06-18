@@ -5,11 +5,45 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 import java.io.*;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
 import java.util.regex.*;
 
-public class Downloader {
+public class Downloader implements Runnable {
 	private List<String> downloadUrls = new ArrayList<String>();
+	private BlockingQueue<String> queue;
 	private String folderPath = "";
+	
+	public Downloader(BlockingQueue<String> queue, String folderPath )
+	{
+		this.queue = queue;
+		this.folderPath = folderPath;
+	}
+	
+
+	@Override
+	public void run() {
+		try
+		{
+			boolean done = false;
+			while(!done)
+			{
+				String pdfFileName = queue.take();
+				if(pdfFileName == URLReader.DUMMY)
+				{
+					queue.put(pdfFileName);
+					done = true;
+				}
+				else 
+					process(pdfFileName);
+			}
+		}
+		catch(InterruptedException e)
+		{
+			
+		}
+		
+	}
 	
 	public void setFolerPath(String name)
 	{
@@ -31,48 +65,39 @@ public class Downloader {
 		downloadUrls.addAll(urlList);
 	}
 	
-	public void process()
+	public void process(String sCurrUrl)
 	{
 		try
 		{
-			String sCurrUrl;
-			ListIterator<String> lit = downloadUrls.listIterator();
-			while(lit.hasNext())
+			URL url1 = new URL(sCurrUrl);
+			URLConnection urlConn = url1.openConnection();
+			
+			//Checking whether the URL contains a PDF
+			if(!urlConn.getContentType().equalsIgnoreCase("application/pdf"))
 			{
-				sCurrUrl = lit.next();
-				URL url1 = new URL(sCurrUrl);
-				URLConnection urlConn = url1.openConnection();
-				
-				//Checking whether the URL contains a PDF
-				if(!urlConn.getContentType().equalsIgnoreCase("application/pdf"))
-				{
-					System.out.println(sCurrUrl + ": Sorry! Not a PDF file!");
-				}
-				else
-				{
-					System.out.print("Downloading " + extractFileName(sCurrUrl) + " ...");
-					//Download: get input stream from URL, output stream to file!
-					String fileName = extractFileName(sCurrUrl);
-					if(fileName == "")
-					{
-						System.out.println("Filename error! Couldn't extract file name: " + sCurrUrl);
-						continue;
-					}
-					InputStream in = new BufferedInputStream(urlConn.getInputStream());
-					OutputStream out = new FileOutputStream(folderPath + "/" + fileName);
-					
-					int b;
-					while((b = in.read())!=-1)
-					{
-						out.write(b);
-					}
-					in.close();
-					out.close();
-					System.out.println("...  done!");
-				}
-				
+				System.out.println(sCurrUrl + ": Sorry! Not a PDF file!");
 			}
-			System.out.println("Crawling done .... Now exit program ....");
+			else
+			{
+
+				//Download: get input stream from URL, output stream to file!
+				String fileName = extractFileName(sCurrUrl);
+				if(fileName == "")
+				{
+					System.out.println("Filename error! Couldn't extract file name: " + sCurrUrl);
+				}
+				InputStream in = new BufferedInputStream(urlConn.getInputStream());
+				OutputStream out = new FileOutputStream(folderPath + "/" + fileName);
+				
+				int b;
+				while((b = in.read())!=-1)
+				{
+					out.write(b);
+				}
+				in.close();
+				out.close();
+				System.out.println("Download " + extractFileName(sCurrUrl) + " completed!");
+			}
 		}
 		catch(Exception e)
 		{
@@ -90,5 +115,5 @@ public class Downloader {
 		}
 		return "";
 	}
-	
+
 }
