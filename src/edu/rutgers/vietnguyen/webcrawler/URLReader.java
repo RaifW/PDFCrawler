@@ -59,6 +59,9 @@ public class URLReader {
 		}
 	}
 	
+	/*
+	 * Check if a string is a valid URL or not.
+	 */
 	private boolean valid(String s){
 		if(s.matches("javascript:.*|mailto:.*")){
 			return false;
@@ -66,6 +69,9 @@ public class URLReader {
 		return true;
 	}
 	
+	/*
+	 * Make absolute link, from the site url and the link address.
+	 */
 	private  String makeAbsolute(String url, String link)
 	{
 		if(link.matches("http://.*"))

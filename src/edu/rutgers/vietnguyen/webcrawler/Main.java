@@ -23,7 +23,6 @@ public class Main {
 			downloader.importUrlList(URLReader.pdfList);
 			downloader.setFolerPath(folderPath);
 			downloader.process();
-			
 		}
 		catch(Exception ex)
 		{
